@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrar — Student Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF7EF;
+    --paper-raised: #FFFFFF;
+    --ink: #1E2A38;
+    --ink-soft: #4C5A6B;
+    --line: #D9D2C2;
+    --brass: #A9793F;
+    --brass-deep: #8A6230;
+    --sage: #56715A;
+    --sage-bg: #E7EEE6;
+    --rust: #A6483A;
+    --rust-bg: #F4E3DF;
+    --focus: #2E6E8E;
+    --radius: 3px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #171512;
+      --paper-raised: #201D19;
+      --ink: #EDE7DA;
+      --ink-soft: #B7AE9C;
+      --line: #3B362D;
+      --brass: #D9A85C;
+      --brass-deep: #E8BE7E;
+      --sage: #8FB093;
+      --sage-bg: #223226;
+      --rust: #D98B7C;
+      --rust-bg: #3A2320;
+      --focus: #7CB8DA;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #171512;
+    --paper-raised: #201D19;
+    --ink: #EDE7DA;
+    --ink-soft: #B7AE9C;
+    --line: #3B362D;
+    --brass: #D9A85C;
+    --brass-deep: #E8BE7E;
+    --sage: #8FB093;
+    --sage-bg: #223226;
+    --rust: #D98B7C;
+    --rust-bg: #3A2320;
+    --focus: #7CB8DA;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--brass); color: var(--paper-raised); }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  header.masthead {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 20px;
+    margin-bottom: 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .masthead h1 {
+    font-family: 'Source Serif 4', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 40px);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .masthead p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14.5px;
+  }
+  .ledger-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+  .ledger-count strong {
+    display: block;
+    font-family: 'Source Serif 4', serif;
+    font-size: 30px;
+    color: var(--brass-deep);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  /* ---- Entry form (index-card) ---- */
+  .card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .entry-card {
+    padding: 24px 24px 20px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .entry-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--brass);
+  }
+  .entry-card h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 18px;
+    margin: 0 0 18px;
+    font-weight: 600;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 18px;
+  }
+  @media (max-width: 680px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 14.5px;
+  }
+  .field input:focus, .field select:focus {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+    border-color: var(--focus);
+  }
+  .field small.err {
+    display: none;
+    color: var(--rust);
+    font-size: 11.5px;
+    margin-top: 4px;
+  }
+  .field.invalid input, .field.invalid select { border-color: var(--rust); }
+  .field.invalid small.err { display: block; }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  button {
+    font-family: inherit;
+    font-size: 14px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 9px 18px;
+    border: 1px solid transparent;
+  }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border-color: var(--line);
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+  /* ---- Toolbar ---- */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .toolbar h2 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 20px;
+    margin: 0;
+  }
+  .search-box {
+    position: relative;
+  }
+  .search-box input {
+    width: 240px;
+    padding: 8px 10px 8px 30px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .search-box input:focus { outline: 2px solid var(--focus); }
+  .search-box svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); opacity: .5; }
+
+  /* ---- Table ---- */
+  .table-wrap {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  thead th {
+    text-align: left;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: color-mix(in srgb, var(--brass) 6%, transparent); }
+  .name-cell strong { font-weight: 600; }
+  .name-cell span { display: block; color: var(--ink-soft); font-size: 12.5px; }
+  .roll { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-soft); }
+  .cgpa { font-family: 'IBM Plex Mono', monospace; }
+  .pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    background: var(--sage-bg);
+    color: var(--sage);
+    font-weight: 500;
+  }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 6px 9px;
+    color: var(--ink-soft);
+    line-height: 1;
+  }
+  .icon-btn:hover { color: var(--ink); border-color: var(--ink-soft); }
+  .icon-btn.danger:hover { color: var(--rust); border-color: var(--rust); }
+
+  .empty-state {
+    text-align: center;
+    padding: 56px 20px;
+    color: var(--ink-soft);
+  }
+  .empty-state p.lead {
+    font-family: 'Source Serif 4', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 40;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer.foot {
+    margin-top: 44px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  footer.foot button { font-size: 12.5px; padding: 6px 12px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>Student Records</h1>
+      <p>A mini CRUD application — add, view, update and remove student entries.</p>
+    </div>
+    <div class="ledger-count">
+      <strong id="countNum">0</strong>
+      records on file
+    </div>
+  </header>
+
+  <section class="card entry-card">
+    <h2 id="formTitle">Add a record</h2>
+    <form id="studentForm" novalidate>
+      <input type="hidden" id="studentId">
+      <div class="grid">
+        <div class="field" data-field="name">
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="e.g. Ananya Rao" autocomplete="off">
+          <small class="err">Enter the student's name.</small>
+        </div>
+        <div class="field" data-field="roll">
+          <label for="roll">Roll number</label>
+          <input type="text" id="roll" placeholder="e.g. 22CS114" autocomplete="off">
+          <small class="err">Enter a roll number.</small>
+        </div>
+        <div class="field" data-field="email">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="name@college.edu" autocomplete="off">
+          <small class="err">Enter a valid email address.</small>
+        </div>
+        <div class="field" data-field="dept">
+          <label for="dept">Department</label>
+          <select id="dept">
+            <option value="">Select department</option>
+            <option>Computer Science</option>
+            <option>Information Technology</option>
+            <option>Electronics</option>
+            <option>Mechanical</option>
+            <option>Civil</option>
+            <option>Electrical</option>
+            <option>Other</option>
+          </select>
+          <small class="err">Choose a department.</small>
+        </div>
+        <div class="field" data-field="year">
+          <label for="year">Year</label>
+          <select id="year">
+            <option value="">Select year</option>
+            <option>1st Year</option>
+            <option>2nd Year</option>
+            <option>3rd Year</option>
+            <option>4th Year</option>
+          </select>
+          <small class="err">Choose a year.</small>
+        </div>
+        <div class="field" data-field="cgpa">
+          <label for="cgpa">CGPA</label>
+          <input type="number" id="cgpa" placeholder="e.g. 8.4" step="0.01" min="0" max="10">
+          <small class="err">Enter a CGPA between 0 and 10.</small>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" id="cancelEdit" style="display:none;">Cancel</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Add record</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="toolbar">
+    <h2>All records</h2>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search name, roll or department…">
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Roll no.</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>CGPA</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <p class="lead">No records yet</p>
+      <p>Use the form above to add the first student record.</p>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>Data is saved to this browser only, via <code>localStorage</code>.</span>
+    <button class="btn-ghost" id="seedBtn">Load sample data</button>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'src_student_records_v1';
+  const tableBody = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+  const countNum = document.getElementById('countNum');
+  const form = document.getElementById('studentForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const cancelEditBtn = document.getElementById('cancelEdit');
+  const formTitle = document.getElementById('formTitle');
+  const studentIdInput = document.getElementById('studentId');
+  const searchInput = document.getElementById('searchInput');
+  const toast = document.getElementById('toast');
+  const seedBtn = document.getElementById('seedBtn');
+
+  const fields = ['name', 'roll', 'email', 'dept', 'year', 'cgpa'];
+
+  // ---------- storage ----------
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Failed to read records', e);
+      return [];
+    }
+  }
+  function save(records) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    } catch (e) {
+      console.error('Failed to save records', e);
+      showToast('Could not save — storage may be full.');
+    }
+  }
+
+  let records = load();
+  let editingId = null;
+
+  // ---------- helpers ----------
+  function uid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function initials(name) {
+    return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
+  }
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // ---------- validation ----------
+  function setFieldError(name, hasError) {
+    const el = document.querySelector(`.field[data-field="${name}"]`);
+    el.classList.toggle('invalid', hasError);
+  }
+  function validate() {
+    let valid = true;
+    const name = document.getElementById('name').value.trim();
+    const roll = document.getElementById('roll').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const dept = document.getElementById('dept').value;
+    const year = document.getElementById('year').value;
+    const cgpa = document.getElementById('cgpa').value;
+
+    setFieldError('name', !name); if (!name) valid = false;
+    setFieldError('roll', !roll); if (!roll) valid = false;
+
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setFieldError('email', !emailOk); if (!emailOk) valid = false;
+
+    setFieldError('dept', !dept); if (!dept) valid = false;
+    setFieldError('year', !year); if (!year) valid = false;
+
+    const cgpaOk = cgpa !== '' && Number(cgpa) >= 0 && Number(cgpa) <= 10;
+    setFieldError('cgpa', !cgpaOk); if (!cgpaOk) valid = false;
+
+    return valid;
+  }
+
+  // ---------- CRUD ----------
+  function addRecord(data) {
+    records.push({ id: uid(), ...data });
+    save(records);
+  }
+  function updateRecord(id, data) {
+    const idx = records.findIndex(r => r.id === id);
+    if (idx !== -1) records[idx] = { id, ...data };
+    save(records);
+  }
+  function deleteRecord(id) {
+    records = records.filter(r => r.id !== id);
+    save(records);
+  }
+
+  // ---------- render ----------
+  function render() {
+    const term = searchInput.value.trim().toLowerCase();
+    const filtered = term
+      ? records.filter(r =>
+          r.name.toLowerCase().includes(term) ||
+          r.roll.toLowerCase().includes(term) ||
+          r.dept.toLowerCase().includes(term))
+      : records;
+
+    countNum.textContent = records.length;
+
+    if (filtered.length === 0) {
+      tableBody.innerHTML = '';
+      emptyState.style.display = 'block';
+      emptyState.querySelector('.lead').textContent = records.length === 0 ? 'No records yet' : 'No matches';
+      emptyState.querySelector('p:last-child').textContent = records.length === 0
+        ? 'Use the form above to add the first student record.'
+        : 'Try a different search term.';
+      return;
+    }
+    emptyState.style.display = 'none';
+
+    tableBody.innerHTML = filtered.map(r => `
+      <tr data-id="${r.id}">
+        <td class="name-cell">
+          <strong>${escapeHtml(r.name)}</strong>
+          <span>${escapeHtml(r.email)}</span>
+        </td>
+        <td class="roll">${escapeHtml(r.roll)}</td>
+        <td>${escapeHtml(r.dept)}</td>
+        <td><span class="pill">${escapeHtml(r.year)}</span></td>
+        <td class="cgpa">${escapeHtml(r.cgpa)}</td>
+        <td>
+          <div class="row-actions">
+            <button class="icon-btn" data-action="edit" title="Edit">✎</button>
+            <button class="icon-btn danger" data-action="delete" title="Delete">🗑</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ---------- form ----------
+  function resetForm() {
+    form.reset();
+    editingId = null;
+    studentIdInput.value = '';
+    formTitle.textContent = 'Add a record';
+    submitBtn.textContent = 'Add record';
+    cancelEditBtn.style.display = 'none';
+    fields.forEach(f => setFieldError(f, false));
+  }
+
+  function startEdit(id) {
+    const r = records.find(x => x.id === id);
+    if (!r) return;
+    editingId = id;
+    studentIdInput.value = id;
+    document.getElementById('name').value = r.name;
+    document.getElementById('roll').value = r.roll;
+    document.getElementById('email').value = r.email;
+    document.getElementById('dept').value = r.dept;
+    document.getElementById('year').value = r.year;
+    document.getElementById('cgpa').value = r.cgpa;
+    formTitle.textContent = 'Edit record';
+    submitBtn.textContent = 'Save changes';
+    cancelEditBtn.style.display = 'inline-block';
+    document.getElementById('name').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const data = {
+      name: document.getElementById('name').value.trim(),
+      roll: document.getElementById('roll').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      dept: document.getElementById('dept').value,
+      year: document.getElementById('year').value,
+      cgpa: document.getElementById('cgpa').value
+    };
+
+    if (editingId) {
+      updateRecord(editingId, data);
+      showToast('Record updated');
+    } else {
+      addRecord(data);
+      showToast('Record added');
+    }
+    resetForm();
+    render();
+  });
+
+  cancelEditBtn.addEventListener('click', resetForm);
+
+  tableBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const tr = e.target.closest('tr');
+    const id = tr.dataset.id;
+    if (btn.dataset.action === 'edit') {
+      startEdit(id);
+    } else if (btn.dataset.action === 'delete') {
+      const r = records.find(x => x.id === id);
+      if (confirm(`Delete the record for ${r.name}? This can't be undone.`)) {
+        deleteRecord(id);
+        if (editingId === id) resetForm();
+        render();
+        showToast('Record deleted');
+      }
+    }
+  });
+
+  searchInput.addEventListener('input', render);
+
+  seedBtn.addEventListener('click', () => {
+    const sample = [
+      { name: 'Ananya Rao', roll: '22CS114', email: 'ananya.rao@college.edu', dept: 'Computer Science', year: '3rd Year', cgpa: '8.7' },
+      { name: 'Karthik Subramaniam', roll: '22IT045', email: 'karthik.s@college.edu', dept: 'Information Technology', year: '2nd Year', cgpa: '7.9' },
+      { name: 'Meera Pillai', roll: '21EC078', email: 'meera.pillai@college.edu', dept: 'Electronics', year: '4th Year', cgpa: '9.1' },
+      { name: 'Rohan Verma', roll: '23ME021', email: 'rohan.verma@college.edu', dept: 'Mechanical', year: '1st Year', cgpa: '7.4' }
+    ];
+    sample.forEach(addRecord);
+    render();
+    showToast('Sample data loaded');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
